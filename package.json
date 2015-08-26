@@ -1,0 +1,16 @@
+{
+  "name": "neutrino",
+  "main": "./lib/neutrino",
+  "version": "0.0.0",
+  "description": "A short description of your package",
+  "keywords": [],
+  "activationCommands": {
+    "atom-workspace": "neutrino:toggle"
+  },
+  "repository": "https://github.com/jpatel531/neutrino",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "dependencies": {}
+}
