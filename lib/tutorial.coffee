@@ -32,7 +32,9 @@ class Tutorial
       split: 'right'
       activatePane: false
       searchAllPanes: true
-    atom.workspace.open("neutrino://one", options).then (instructionView) =>
+    path = "neutrino://#{encodeURI(@title)}"
+    console.log path
+    atom.workspace.open(path, options).then (instructionView) =>
       @instructionView = instructionView
       @instructionView.tutorial = @
       done()
@@ -87,7 +89,7 @@ class Tutorial
       ChildProcess.exec("rm #{path}")
 
     terminal.stdout.on 'data', (data)=> @onData(data)
-    terminal.stderr.on 'data', @onErr
+    terminal.stderr.on 'data', (data) => @onErr(data)
 
     terminal.stdin.write("#{command}\n")
     terminal.stdin.write("exit\n")
