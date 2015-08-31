@@ -1,8 +1,10 @@
-BASE_URL = require('./config').BASE_URL
+{BASE_URL} = require('./config')
 _ = require 'underscore'
 $ = require 'jquery'
 ChildProcess  = require 'child_process'
 fs = require 'fs'
+path = require 'path'
+packagePath = path.dirname(__dirname)
 
 module.exports =
 class Tutorial
@@ -22,8 +24,8 @@ class Tutorial
     editor
 
   setSyntax: ->
-    grammar = atom.grammars.grammarForScopeName(@language)
-    @editor.setGrammar(grammar)
+    @grammar = atom.grammars.grammarForScopeName(@language)
+    @editor.setGrammar(@grammar)
 
   setUpPanes: (done)->
     @editor = @ensureActiveEditor()
@@ -78,7 +80,7 @@ class Tutorial
     answer = @editor.buffer.getText()
     toRun = "#{answer}\n#{@steps[@currentStep].spec}"
     fileName = "#{@id}-#{new Date().getTime()}.rb"
-    path = atom.packages.getPackageDirPaths()+"/neutrino/tmp/#{fileName}"
+    path = packagePath+"/tmp/#{fileName}"
     fs.writeFileSync(path, toRun)
     command = "rspec -fj #{path}"
 

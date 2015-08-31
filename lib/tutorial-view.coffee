@@ -1,4 +1,7 @@
 {ScrollView, View} = require 'atom-space-pen-views'
+{CompositeDisposable} = require 'atom'
+
+renderer = require './md-renderer'
 
 module.exports =
 class NeutrinoView extends ScrollView
@@ -11,7 +14,11 @@ class NeutrinoView extends ScrollView
   getTitle: -> @title
 
   setText: (text)->
-    @find('.neutrino-instruction').text(text)
+    renderer.toDOMFragment text, null, null, (error, domFragment) =>
+      console.log error
+      console.log domFragment
+      if error then throw error
+      @find('.neutrino-instruction').html(domFragment)
 
   onSubmit: ->
     @tutorial.onSubmit()
@@ -19,3 +26,5 @@ class NeutrinoView extends ScrollView
   initialize: (path)->
     super
     @title = decodeURI(path)
+    @subscriptions = new CompositeDisposable
+    @subscriptions.add atom.commands.add atom.views.getView(atom.workspace), 'neutrino:submit': => @onSubmit()

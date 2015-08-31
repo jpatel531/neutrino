@@ -6,7 +6,7 @@ url = require 'url'
 
 scheme = 'neutrino:'
 
-BASE_URL = require('./config').BASE_URL
+{BASE_URL} = require('./config')
 
 createView = (state) ->
   new TutorialView(state)
