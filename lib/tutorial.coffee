@@ -1,10 +1,9 @@
 {BASE_URL} = require('./config')
 _ = require 'underscore'
 $ = require 'jquery'
-ChildProcess  = require 'child_process'
-fs = require 'fs'
 path = require 'path'
 packagePath = path.dirname(__dirname)
+RSpecRunner = require './rspec-runner'
 
 module.exports =
 class Tutorial
@@ -63,37 +62,11 @@ class Tutorial
       @currentStep += 1
       @render()
 
-  onData: (data) ->
-    result = JSON.parse data.toString()
-    console.log result
-    if result.summary.failure_count is 0
-      atom.notifications.addSuccess("Success!")
-      setTimeout((=> @progress()),1000)
-    else
-      failures = _.filter(result.examples, {status: "failed"})
-      _.each failures, (failure) ->
-        atom.notifications.addError("#{failure.full_description}\n#{failure.exception.message}")
-
-  onErr: (data) ->
-    error = JSON.parse data.toString()
-    atom.notifications.addError(error)
-
   runSpecForStep: ->
     answer = @editor.buffer.getText()
     toRun = "#{answer}\n#{@steps[@currentStep].spec}"
     fileName = "#{@id}-#{new Date().getTime()}.rb"
-    path = packagePath+"/tmp/#{fileName}"
-    fs.writeFileSync(path, toRun)
-    command = "rspec -fj #{path}"
+    filePath = packagePath+"/tmp/#{fileName}"
 
-    spawn = ChildProcess.spawn
-    terminal = spawn("bash", ["-l"])
-
-    terminal.on 'close', ->
-      ChildProcess.exec("rm #{path}")
-
-    terminal.stdout.on 'data', (data)=> @onData(data)
-    terminal.stderr.on 'data', (data) => @onErr(data)
-
-    terminal.stdin.write("#{command}\n")
-    terminal.stdin.write("exit\n")
+    runner = new RSpecRunner(toRun, filePath, @)
+    runner.run()
