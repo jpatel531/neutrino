@@ -1,6 +1,9 @@
 BASE_URL = require('./config').BASE_URL
 _ = require 'underscore'
 $ = require 'jquery'
+ChildProcess  = require 'child_process'
+fs = require 'fs'
+
 module.exports =
 class Tutorial
 
@@ -19,9 +22,7 @@ class Tutorial
     editor
 
   setSyntax: ->
-    console.log @language
     grammar = atom.grammars.grammarForScopeName(@language)
-    console.log grammar
     @editor.setGrammar(grammar)
 
   setUpPanes: (done)->
@@ -33,15 +34,60 @@ class Tutorial
       searchAllPanes: true
     atom.workspace.open("neutrino://one", options).then (instructionView) =>
       @instructionView = instructionView
+      @instructionView.tutorial = @
       done()
 
   start: ->
     @setUpPanes =>
-      @render(1)
+      @currentStep ?= 0
+      @render()
 
-  render: (step)->
-    step = @steps[step]
+  onSubmit: ->
+    @runSpecForStep()
+
+  render: ->
+    step = @steps[@currentStep]
     @editor.buffer.setText(step.source)
     @instructionView.setText(step.instruction)
 
-  runSpecForStep: (step) ->
+  progress: ->
+    if @currentStep is @steps.length - 1
+      atom.notifications.addSuccess("You've finished the tutorial!")
+    else
+      @currentStep += 1
+      @render()
+
+  onData: (data) ->
+    result = JSON.parse data.toString()
+    console.log result
+    if result.summary.failure_count is 0
+      atom.notifications.addSuccess("Success!")
+      setTimeout((=> @progress()),1000)
+    else
+      failures = _.filter(result.examples, {status: "failed"})
+      _.each failures, (failure) ->
+        atom.notifications.addError("#{failure.full_description}\n#{failure.exception.message}")
+
+  onErr: (data) ->
+    error = JSON.parse data.toString()
+    atom.notifications.addError(error)
+
+  runSpecForStep: ->
+    answer = @editor.buffer.getText()
+    toRun = "#{answer}\n#{@steps[@currentStep].spec}"
+    fileName = "#{@id}-#{new Date().getTime()}.rb"
+    path = atom.packages.getPackageDirPaths()+"/neutrino/tmp/#{fileName}"
+    fs.writeFileSync(path, toRun)
+    command = "rspec -fj #{path}"
+
+    spawn = ChildProcess.spawn
+    terminal = spawn("bash", ["-l"])
+
+    terminal.on 'close', ->
+      ChildProcess.exec("rm #{path}")
+
+    terminal.stdout.on 'data', (data)=> @onData(data)
+    terminal.stderr.on 'data', @onErr
+
+    terminal.stdin.write("#{command}\n")
+    terminal.stdin.write("exit\n")

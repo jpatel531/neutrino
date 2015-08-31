@@ -24,11 +24,3 @@ module.exports = Neutrino =
       $.get "#{BASE_URL}/tutorials", (items) ->
         console.log items
         new TutorialListView(items)
-
-    @subscriptions.add atom.commands.add 'atom-workspace', 'neutrino:view': ->
-      options =
-        split: 'right'
-        activatePane: false
-        searchAllPanes: true
-      atom.workspace.open(uri, options).then (e) ->
-        console.log e

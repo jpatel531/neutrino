@@ -4,13 +4,18 @@ module.exports =
 class NeutrinoView extends ScrollView
 
   @content: ->
-    @div()
+    @div =>
+      @button 'Submit', click: 'onSubmit'
+      @div class: 'neutrino-instruction'
 
   getTitle: ->
     'hello'
 
   setText: (text)->
-    @text(text)
+    @find('.neutrino-instruction').text(text)
+
+  onSubmit: ->
+    @tutorial.onSubmit()
 
   initialize: (state)->
     super
