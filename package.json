@@ -4,13 +4,15 @@
   "version": "0.0.1",
   "description": "A short description of your package",
   "keywords": [],
-  "activationCommands": {
-    "atom-workspace": "neutrino:toggle"
-  },
   "repository": "https://github.com/jpatel531/neutrino",
   "license": "MIT",
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "atom-space-pen-views": "^2.1.0",
+    "jquery": "^2.1.4",
+    "space-pen": "^5.1.1",
+    "underscore": "^1.8.3"
+  }
 }

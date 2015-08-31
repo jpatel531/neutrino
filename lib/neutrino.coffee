@@ -1,33 +1,34 @@
-NeutrinoView = require './neutrino-view'
 {CompositeDisposable} = require 'atom'
+TutorialView = require './tutorial-view'
+TutorialListView = require './tutorial-list-view'
+uri = 'neutrino://one'
+$ = require 'jquery'
+
+BASE_URL = require('./config').BASE_URL
+
+createView = (state) ->
+  new TutorialView(state)
+
+openNeutrino = (filePath) ->
+  createView(uri: uri) if filePath is uri
 
 module.exports = Neutrino =
-  neutrinoView: null
-  modalPanel: null
   subscriptions: null
 
   activate: (state) ->
-    @neutrinoView = new NeutrinoView(state.neutrinoViewState)
-    @modalPanel = atom.workspace.addModalPanel(item: @neutrinoView.getElement(), visible: false)
 
-    # Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
     @subscriptions = new CompositeDisposable
+    atom.workspace.addOpener openNeutrino
 
-    # Register command that toggles this view
-    @subscriptions.add atom.commands.add 'atom-workspace', 'neutrino:toggle': => @toggle()
+    @subscriptions.add atom.commands.add 'atom-workspace', 'neutrino:find tutorial': ->
+      $.get "#{BASE_URL}/tutorials", (items) ->
+        console.log items
+        new TutorialListView(items)
 
-  deactivate: ->
-    @modalPanel.destroy()
-    @subscriptions.dispose()
-    @neutrinoView.destroy()
-
-  serialize: ->
-    neutrinoViewState: @neutrinoView.serialize()
-
-  toggle: ->
-    console.log 'Neutrino was toggled!'
-
-    if @modalPanel.isVisible()
-      @modalPanel.hide()
-    else
-      @modalPanel.show()
+    @subscriptions.add atom.commands.add 'atom-workspace', 'neutrino:view': ->
+      options =
+        split: 'right'
+        activatePane: false
+        searchAllPanes: true
+      atom.workspace.open(uri, options).then (e) ->
+        console.log e
