@@ -46,6 +46,8 @@ class Tutorial
       @currentStep ?= 0
       @render()
 
+  goBack: ->
+
   onSubmit: ->
     @runSpecForStep()
 

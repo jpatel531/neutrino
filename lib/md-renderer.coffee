@@ -163,7 +163,7 @@ convertCodeBlocksToAtomEditors = (domFragment, defaultLanguage='text') ->
     # console.log grammar
     # if grammar
       # console.log grammar
-    editor.setGrammar(atom.grammars.grammarForScopeName "source.#{fenceName}")
+    editor.setGrammar(atom.grammars.grammarForScopeName(scopesByFenceName[fenceName] ? "source.#{fenceName}"))
       # console.log grammar
     # console.log 'ello'
   domFragment
