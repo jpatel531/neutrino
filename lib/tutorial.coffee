@@ -5,8 +5,13 @@ path = require 'path'
 packagePath = path.dirname(__dirname)
 RSpecRunner = require './rspec-runner'
 
+SourceEditor = require './source-editor'
+
 module.exports =
 class Tutorial
+
+  currentStep: 1
+  sourceEditors: []
 
   constructor: (obj)->
     {@id, @title} = obj
@@ -22,28 +27,19 @@ class Tutorial
     atom.notifications.addError("plz open an editor") unless editor
     editor
 
-  setSyntax: ->
-    @grammar = atom.grammars.grammarForScopeName(@language)
-    @editor.setGrammar(@grammar)
-
-  setUpPanes: (done)->
-    @editor = @ensureActiveEditor()
-    @setSyntax()
+  setUpInstruction: (done)->
     options =
       split: 'right'
       activatePane: false
       searchAllPanes: true
     path = "neutrino://#{encodeURI(@title)}"
-    console.log path
     atom.workspace.open(path, options).then (instructionView) =>
       @instructionView = instructionView
       @instructionView.tutorial = @
       done()
 
   start: ->
-    @setUpPanes =>
-      @currentStep ?= 0
-      @render()
+    @setUpInstruction => @render()
 
   goBack: ->
 
@@ -52,7 +48,13 @@ class Tutorial
 
   render: ->
     step = @steps[@currentStep]
-    @editor.buffer.setText(step.source)
+    renderedTitles = _.pluck(@sourceEditors, 'title')
+    unrenderedFiles = _.reject step.source, (source) =>
+      _.contains(renderedTitles, source.title)
+    _.each unrenderedFiles, (source) =>
+      atom.workspace.open(null, split: 'left').then (editor) =>
+        sourceEditor = new SourceEditor(editor, source.code, source.title, source.language)
+        @sourceEditors.push sourceEditor
     @instructionView.setText(step.instruction)
 
   progress: ->
@@ -63,7 +65,9 @@ class Tutorial
       @render()
 
   runSpecForStep: ->
-    answer = @editor.buffer.getText()
+    allText = _.map @sourceEditors, (source) =>
+      source.editor.buffer.getText()
+    answer = allText.join("\n")
     toRun = "#{answer}\n#{@steps[@currentStep].spec}"
     fileName = "#{@id}-#{new Date().getTime()}.rb"
     filePath = packagePath+"/tmp/#{fileName}"

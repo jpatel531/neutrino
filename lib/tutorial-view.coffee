@@ -16,8 +16,6 @@ class NeutrinoView extends ScrollView
 
   setText: (text)->
     renderer.toDOMFragment text, null, null, (error, domFragment) =>
-      console.log error
-      console.log domFragment
       if error then throw error
       @find('.neutrino-instruction').html(domFragment)
 
